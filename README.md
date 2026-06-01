@@ -150,8 +150,8 @@ curl -X POST http://localhost:8000/api/ingest \
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/yourusername/sar-generation-system.git
-cd sar-generation-system
+git clone https://github.com/zahra-fatma/sar-system
+cd sar-system
 ```
 
 ### 2. Create virtual environment
