@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAR System — Case Queue</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #0f1117; color: #e2e8f0; }
+        .header { background: #1a1d2e; border-bottom: 1px solid #2d3748; padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; }
+        .header h1 { font-size: 20px; font-weight: 600; color: #fff; }
+        .header span { font-size: 13px; color: #718096; }
+        .container { max-width: 1200px; margin: 32px auto; padding: 0 32px; }
+        .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
+        .stat-card { background: #1a1d2e; border: 1px solid #2d3748; border-radius: 8px; padding: 20px; }
+        .stat-card .label { font-size: 12px; color: #718096; text-transform: uppercase; letter-spacing: 0.05em; }
+        .stat-card .value { font-size: 28px; font-weight: 700; margin-top: 8px; }
+        .stat-card.open .value { color: #f6ad55; }
+        .stat-card.review .value { color: #63b3ed; }
+        .stat-card.approved .value { color: #68d391; }
+        .stat-card.rejected .value { color: #fc8181; }
+        .toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+        .section-title { font-size: 16px; font-weight: 600; color: #fff; }
+        .filters { display: flex; gap: 8px; }
+        .filter-btn { padding: 6px 16px; border-radius: 20px; border: 1px solid #2d3748; background: transparent; color: #a0aec0; cursor: pointer; font-size: 13px; transition: all 0.2s; }
+        .filter-btn.active, .filter-btn:hover { background: #2d3748; color: #fff; }
+        table { width: 100%; border-collapse: collapse; background: #1a1d2e; border-radius: 8px; overflow: hidden; border: 1px solid #2d3748; }
+        th { padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #718096; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #2d3748; }
+        td { padding: 14px 16px; font-size: 14px; border-bottom: 1px solid #1e2435; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #1e2435; }
+        .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; }
+        .badge.open { background: #744210; color: #f6ad55; }
+        .badge.under_review { background: #1a365d; color: #63b3ed; }
+        .badge.approved { background: #1c4532; color: #68d391; }
+        .badge.rejected { background: #4a1818; color: #fc8181; }
+        .risk-bar { display: flex; align-items: center; gap: 8px; }
+        .risk-bar .bar { height: 6px; border-radius: 3px; background: #2d3748; flex: 1; }
+        .risk-bar .fill { height: 100%; border-radius: 3px; }
+        .btn { padding: 6px 14px; border-radius: 6px; border: none; cursor: pointer; font-size: 13px; font-weight: 500; }
+        .btn-primary { background: #4a5568; color: #fff; text-decoration: none; display: inline-block; }
+        .btn-primary:hover { background: #2d3748; }
+        .btn-upload { background: #2b6cb0; color: #fff; padding: 8px 18px; font-size: 13px; border-radius: 6px; border: none; cursor: pointer; }
+        .btn-upload:hover { background: #2c5282; }
+        .empty { text-align: center; padding: 48px; color: #718096; }
+        /* Upload modal */
+        .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; align-items: center; justify-content: center; }
+        .modal-bg.active { display: flex; }
+        .modal { background: #1a1d2e; border: 1px solid #2d3748; border-radius: 12px; padding: 32px; width: 480px; }
+        .modal h2 { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+        .modal p { font-size: 13px; color: #718096; margin-bottom: 20px; }
+        .drop-zone { border: 2px dashed #2d3748; border-radius: 8px; padding: 40px; text-align: center; cursor: pointer; transition: all 0.2s; }
+        .drop-zone:hover, .drop-zone.dragover { border-color: #4a90e2; background: #1e2a3a; }
+        .drop-zone input { display: none; }
+        .drop-zone .icon { font-size: 32px; margin-bottom: 12px; }
+        .drop-zone p { color: #718096; font-size: 14px; }
+        .drop-zone .filename { color: #63b3ed; font-size: 13px; margin-top: 8px; }
+        .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+        .btn-cancel { flex: 1; background: #2d3748; color: #a0aec0; padding: 10px; border-radius: 6px; border: none; cursor: pointer; }
+        .btn-submit { flex: 2; background: #2b6cb0; color: #fff; padding: 10px; border-radius: 6px; border: none; cursor: pointer; font-weight: 500; }
+        .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+        .result-box { display: none; background: #0f1117; border-radius: 8px; padding: 16px; margin-top: 16px; font-size: 13px; }
+        .result-box.active { display: block; }
+        .result-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #2d3748; }
+        .result-row:last-child { border-bottom: none; }
+        .progress { height: 4px; background: #2d3748; border-radius: 2px; margin-top: 12px; overflow: hidden; display: none; }
+        .progress.active { display: block; }
+        .progress-bar { height: 100%; background: #4a90e2; border-radius: 2px; animation: progress 1.5s ease-in-out infinite; }
+        @keyframes progress { 0%{width:0%} 50%{width:70%} 100%{width:100%} }
+        .sample-link { color: #63b3ed; font-size: 12px; cursor: pointer; text-decoration: underline; margin-top: 8px; display: inline-block; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🛡️ SAR Generation System</h1>
+        <span>Analyst Dashboard</span>
+    </div>
+
+    <div class="container">
+        <div class="stats">
+            <div class="stat-card open">
+                <div class="label">Open Cases</div>
+                <div class="value">{{ stats.open }}</div>
+            </div>
+            <div class="stat-card review">
+                <div class="label">Under Review</div>
+                <div class="value">{{ stats.under_review }}</div>
+            </div>
+            <div class="stat-card approved">
+                <div class="label">Approved</div>
+                <div class="value">{{ stats.approved }}</div>
+            </div>
+            <div class="stat-card rejected">
+                <div class="label">Rejected</div>
+                <div class="value">{{ stats.rejected }}</div>
+            </div>
+        </div>
+
+        <div class="toolbar">
+            <div class="section-title">Case Queue</div>
+            <div style="display:flex;gap:12px;align-items:center;">
+                <div class="filters">
+                    <button class="filter-btn active" onclick="filterCases('all', this)">All</button>
+                    <button class="filter-btn" onclick="filterCases('open', this)">Open</button>
+                    <button class="filter-btn" onclick="filterCases('under_review', this)">Under Review</button>
+                    <button class="filter-btn" onclick="filterCases('approved', this)">Approved</button>
+                    <button class="filter-btn" onclick="filterCases('rejected', this)">Rejected</button>
+                </div>
+                <button class="btn-upload" onclick="document.getElementById('upload-modal').classList.add('active')">
+                    ⬆ Upload CSV
+                </button>
+            </div>
+        </div>
+
+        {% if cases %}
+        <table id="cases-table">
+            <thead>
+                <tr>
+                    <th>Case ID</th>
+                    <th>Transaction</th>
+                    <th>Risk Score</th>
+                    <th>Top Rules</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for case in cases %}
+                <tr data-status="{{ case.status }}">
+                    <td>#{{ case.id }}</td>
+                    <td>{{ case.tx_id }}</td>
+                    <td>
+                        <div class="risk-bar">
+                            <div class="bar">
+                                <div class="fill" style="width: {{ (case.risk_score * 100)|int }}%; background: {% if case.risk_score > 0.8 %}#fc8181{% elif case.risk_score > 0.5 %}#f6ad55{% else %}#68d391{% endif %};"></div>
+                            </div>
+                            <span>{{ "%.2f"|format(case.risk_score) }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        {% for rule in case.triggered_rules[:2] %}
+                            <span class="badge open">{{ rule.rule }}</span>
+                        {% endfor %}
+                    </td>
+                    <td><span class="badge {{ case.status }}">{{ case.status.replace('_', ' ').title() }}</span></td>
+                    <td>{{ case.created_at[:10] if case.created_at else 'N/A' }}</td>
+                    <td><a href="/case/{{ case.id }}" class="btn btn-primary">Review</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty">No cases found. Upload a CSV or ingest transactions to get started.</div>
+        {% endif %}
+    </div>
+
+    <!-- Upload Modal -->
+    <div class="modal-bg" id="upload-modal">
+        <div class="modal">
+            <h2>Upload Transaction CSV</h2>
+            <p>Upload a CSV file with transaction data. Suspicious transactions will be automatically flagged and added to the case queue.</p>
+
+            <div class="drop-zone" id="drop-zone" onclick="document.getElementById('csv-input').click()">
+                <div class="icon">📂</div>
+                <p>Click to select or drag & drop a CSV file</p>
+                <div class="filename" id="filename"></div>
+                <input type="file" id="csv-input" accept=".csv" onchange="handleFileSelect(this)">
+            </div>
+
+            <span class="sample-link" onclick="downloadSample()">Download sample CSV template</span>
+
+            <div class="progress" id="progress"><div class="progress-bar"></div></div>
+
+            <div class="result-box" id="result-box">
+                <div class="result-row"><span>Total transactions</span><span id="r-total">—</span></div>
+                <div class="result-row"><span>Flagged cases created</span><span id="r-flagged" style="color:#f6ad55">—</span></div>
+                <div class="result-row"><span>Clean transactions</span><span id="r-clean" style="color:#68d391">—</span></div>
+                <div class="result-row"><span>Duplicates skipped</span><span id="r-dup" style="color:#718096">—</span></div>
+                <div class="result-row"><span>Errors</span><span id="r-err" style="color:#fc8181">—</span></div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+                <button class="btn-submit" id="upload-btn" onclick="uploadCSV()" disabled>Upload & Process</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedFile = null;
+
+        function filterCases(status, btn) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.querySelectorAll('#cases-table tbody tr').forEach(row => {
+                row.style.display = (status === 'all' || row.dataset.status === status) ? '' : 'none';
+            });
+        }
+
+        function handleFileSelect(input) {
+            selectedFile = input.files[0];
+            if (selectedFile) {
+                document.getElementById('filename').textContent = selectedFile.name;
+                document.getElementById('upload-btn').disabled = false;
+            }
+        }
+
+        const dropZone = document.getElementById('drop-zone');
+        dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', e => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file && file.name.endsWith('.csv')) {
+                selectedFile = file;
+                document.getElementById('filename').textContent = file.name;
+                document.getElementById('upload-btn').disabled = false;
+            }
+        });
+
+        async function uploadCSV() {
+            if (!selectedFile) return;
+            const btn = document.getElementById('upload-btn');
+            btn.disabled = true;
+            btn.textContent = 'Processing...';
+            document.getElementById('progress').classList.add('active');
+            document.getElementById('result-box').classList.remove('active');
+
+            const form = new FormData();
+            form.append('file', selectedFile);
+
+            try {
+                const res = await fetch('/api/ingest/bulk', { method: 'POST', body: form });
+                const data = await res.json();
+
+                document.getElementById('progress').classList.remove('active');
+                document.getElementById('r-total').textContent   = data.total;
+                document.getElementById('r-flagged').textContent = data.flagged;
+                document.getElementById('r-clean').textContent   = data.clean;
+                document.getElementById('r-dup').textContent     = data.duplicate;
+                document.getElementById('r-err').textContent     = data.errors;
+                document.getElementById('result-box').classList.add('active');
+
+                btn.textContent = 'Done! Reloading...';
+                setTimeout(() => location.reload(), 2000);
+            } catch (err) {
+                alert('Upload failed: ' + err.message);
+                btn.disabled = false;
+                btn.textContent = 'Upload & Process';
+                document.getElementById('progress').classList.remove('active');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('upload-modal').classList.remove('active');
+            selectedFile = null;
+            document.getElementById('filename').textContent = '';
+            document.getElementById('upload-btn').disabled = true;
+            document.getElementById('upload-btn').textContent = 'Upload & Process';
+            document.getElementById('result-box').classList.remove('active');
+            document.getElementById('progress').classList.remove('active');
+        }
+
+        function downloadSample() {
+            const csv = `tx_id,account_id,customer_name,amount,counterparty,tx_type,hour_of_day,tx_count_7d,counterparty_count_30d,is_pep,country,timestamp
+TX10001,ACC-1001,John Smith,9500.00,Shell Corp Ltd,wire,3,30,15,1,AE,2025-05-15T03:00:00
+TX10002,ACC-1002,Jane Doe,450.00,Amazon,ach,14,3,2,0,US,2025-05-15T14:00:00
+TX10003,ACC-1003,Bob Johnson,9200.00,Trade Partners,wire,2,28,13,1,NG,2025-05-16T02:30:00
+TX10004,ACC-1004,Alice Brown,1200.00,Netflix,ach,10,5,3,0,UK,2025-05-16T10:00:00
+TX10005,ACC-1005,Carlos Rivera,50000.00,Offshore LLC,wire,23,35,18,1,RU,2025-05-17T23:00:00`;
+            const blob = new Blob([csv], {type: 'text/csv'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'sample_transactions.csv';
+            a.click();
+        }
+    </script>
+</body>
+</html>

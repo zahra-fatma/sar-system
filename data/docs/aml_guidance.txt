@@ -1,0 +1,85 @@
+BANK SECRECY ACT (BSA) SAR FILING REQUIREMENTS
+
+Financial institutions must file a Suspicious Activity Report (SAR) within
+30 calendar days of detecting a known or suspected violation. If no suspect
+is identified, the institution may delay filing for an additional 30 days.
+SARs must be filed for transactions involving $5,000 or more where the
+institution suspects the transaction involves funds from illegal activity.
+
+SAR NARRATIVE — THE 5 W'S AND HOW
+A complete SAR narrative must answer:
+- WHO: Full name, DOB, address, occupation, account numbers of all subjects
+- WHAT: Exact description of the suspicious activity and transactions
+- WHEN: Precise dates and times of the suspicious transactions
+- WHERE: Locations, branches, jurisdictions, countries involved
+- WHY: Specific reasons the activity is considered suspicious
+- HOW: The method or mechanism used to conduct the suspicious activity
+
+STRUCTURING (31 USC 5324)
+Structuring is a federal crime. It occurs when a person breaks up transactions
+to stay below the $10,000 Currency Transaction Report (CTR) threshold.
+Indicators include: multiple cash deposits just under $10,000, same-day
+transactions at different branches, patterns of $9,000-$9,900 deposits,
+and frequent transactions ending in round numbers like $9,500 or $9,800.
+Structuring does not require that the funds themselves be illegal.
+
+POLITICALLY EXPOSED PERSONS (PEPs)
+PEPs are individuals who hold or have held prominent public positions,
+including heads of state, senior government officials, judicial officers,
+senior executives of state-owned enterprises, and their family members.
+Transactions involving PEPs require enhanced due diligence (EDD).
+Financial institutions must assess the source of wealth and source of funds
+for any PEP relationship. Unexplained wealth or transactions inconsistent
+with known income sources are strong SAR indicators.
+
+HIGH-RISK JURISDICTIONS
+FATF identifies jurisdictions with strategic AML/CFT deficiencies.
+High-risk countries include Iran, North Korea, Myanmar, and others on
+the FATF blacklist. Transactions involving these jurisdictions require
+enhanced scrutiny. UAE, Nigeria, and Russia have historically appeared
+on FATF grey lists and require additional due diligence.
+
+VELOCITY AND COUNTERPARTY RED FLAGS
+High transaction velocity — many transactions in a short period — can indicate
+layering, the second stage of money laundering where funds are moved rapidly
+to obscure their origin. Sending funds to a high number of distinct
+counterparties in a short timeframe is a classic typology for breaking
+the audit trail.
+
+ROUND-DOLLAR TRANSACTIONS
+Transactions in exactly round amounts (e.g., $10,000, $50,000, $100,000)
+with no clear business purpose are a recognized red flag. Legitimate business
+transactions typically have specific amounts due to invoices, fees, or
+interest. Round amounts suggest pre-planned movement rather than organic
+commercial activity.
+
+ODD-HOURS TRANSACTIONS
+Transactions initiated outside normal business hours (before 6 AM or after
+10 PM) may indicate attempts to avoid oversight by bank staff. Automated
+wire transfers scheduled at unusual hours, especially combined with other
+red flags, should be documented in the SAR narrative.
+
+MONEY LAUNDERING STAGES
+Placement: Introducing illicit cash into the financial system via deposits,
+currency exchanges, purchasing monetary instruments, or smurfing.
+Layering: Disguising the money trail through wire transfers, converting
+assets, using shell companies, or moving funds across jurisdictions.
+Integration: Re-introducing laundered funds into the legitimate economy
+via real estate purchases, business investments, or luxury goods.
+
+SAR NARRATIVE WRITING BEST PRACTICES
+1. Be specific — use exact dollar amounts, dates, account numbers.
+2. Avoid conclusions — describe facts, let the regulator draw conclusions.
+3. Chronological order — describe events in the order they occurred.
+4. Reference prior SARs — note any previous filings on the same subject.
+5. Explain what is normal — contrast suspicious activity with expected behavior.
+6. No jargon — write clearly for a non-specialist reader at FinCEN.
+7. Complete sentences — avoid bullet points in the narrative body.
+8. Include negative findings — note steps taken to rule out legitimate reasons.
+
+WIRE TRANSFER RED FLAGS
+International wire transfers to high-risk jurisdictions without clear
+business purpose are strong indicators of money laundering. Particularly
+suspicious: wires to shell companies, wires inconsistent with customer's
+stated business, rapid round-trip transactions where funds return quickly,
+and wires to countries with which the customer has no known business ties.

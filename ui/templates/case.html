@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Case #{{ case.id }} — SAR System</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #0f1117; color: #e2e8f0; }
+        .header { background: #1a1d2e; border-bottom: 1px solid #2d3748; padding: 16px 32px; display: flex; align-items: center; gap: 16px; }
+        .header a { color: #718096; text-decoration: none; font-size: 14px; }
+        .header a:hover { color: #fff; }
+        .header h1 { font-size: 20px; font-weight: 600; color: #fff; }
+        .container { max-width: 1100px; margin: 32px auto; padding: 0 32px; display: grid; grid-template-columns: 1fr 360px; gap: 24px; }
+        .card { background: #1a1d2e; border: 1px solid #2d3748; border-radius: 8px; padding: 24px; margin-bottom: 20px; }
+        .card h2 { font-size: 14px; font-weight: 600; color: #718096; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 16px; }
+        .tx-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .tx-item .label { font-size: 12px; color: #718096; margin-bottom: 4px; }
+        .tx-item .value { font-size: 14px; color: #e2e8f0; font-weight: 500; }
+        .risk-score { font-size: 48px; font-weight: 700; text-align: center; padding: 16px 0; }
+        .risk-score.high { color: #fc8181; }
+        .risk-score.medium { color: #f6ad55; }
+        .risk-score.low { color: #68d391; }
+        .rule { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid #2d3748; }
+        .rule:last-child { border-bottom: none; }
+        .severity { padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+        .severity.HIGH { background: #4a1818; color: #fc8181; }
+        .severity.MEDIUM { background: #744210; color: #f6ad55; }
+        .severity.LOW { background: #1a365d; color: #63b3ed; }
+        .rule-detail { font-size: 13px; color: #a0aec0; margin-top: 2px; }
+        .rule-name { font-size: 14px; font-weight: 500; }
+        .shap-item { display: flex; align-items: center; gap: 8px; padding: 8px 0; }
+        .shap-feature { font-size: 13px; width: 180px; flex-shrink: 0; }
+        .shap-bar-wrap { flex: 1; height: 8px; background: #2d3748; border-radius: 4px; }
+        .shap-bar { height: 100%; border-radius: 4px; }
+        .shap-val { font-size: 12px; color: #718096; width: 50px; text-align: right; }
+        .narrative-text { font-size: 14px; line-height: 1.8; color: #cbd5e0; white-space: pre-wrap; }
+        .narrative-text strong { color: #fff; }
+        .btn { padding: 10px 20px; border-radius: 6px; border: none; cursor: pointer; font-size: 14px; font-weight: 500; width: 100%; margin-bottom: 10px; }
+        .btn-generate { background: #2b6cb0; color: #fff; }
+        .btn-generate:hover { background: #2c5282; }
+        .btn-approve { background: #276749; color: #fff; }
+        .btn-approve:hover { background: #22543d; }
+        .btn-reject { background: #9b2c2c; color: #fff; }
+        .btn-reject:hover { background: #742a2a; }
+        textarea { width: 100%; background: #0f1117; border: 1px solid #2d3748; color: #e2e8f0; border-radius: 6px; padding: 10px; font-size: 13px; resize: vertical; margin-bottom: 10px; }
+        .badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 13px; font-weight: 500; }
+        .badge.open { background: #744210; color: #f6ad55; }
+        .badge.under_review { background: #1a365d; color: #63b3ed; }
+        .badge.approved { background: #1c4532; color: #68d391; }
+        .badge.rejected { background: #4a1818; color: #fc8181; }
+        .status-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+        .loading { display: none; text-align: center; color: #718096; padding: 8px; font-size: 13px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="/">← Back to Queue</a>
+        <h1>Case #{{ case.id }} — {{ case.tx_id }}</h1>
+        <span class="badge {{ case.status }}">{{ case.status.replace('_', ' ').title() }}</span>
+    </div>
+
+    <div class="container">
+        <!-- LEFT COLUMN -->
+        <div>
+            <!-- Transaction Details -->
+            <div class="card">
+                <h2>Transaction Details</h2>
+                <div class="tx-grid">
+                    <div class="tx-item"><div class="label">Transaction ID</div><div class="value">{{ tx.tx_id or case.tx_id }}</div></div>
+                    <div class="tx-item"><div class="label">Customer</div><div class="value">{{ tx.customer_name or 'N/A' }}</div></div>
+                    <div class="tx-item"><div class="label">Amount</div><div class="value">${{ "%.2f"|format(tx.amount or 0) }}</div></div>
+                    <div class="tx-item"><div class="label">Type</div><div class="value">{{ tx.tx_type or 'N/A' }}</div></div>
+                    <div class="tx-item"><div class="label">Counterparty</div><div class="value">{{ tx.counterparty or 'N/A' }}</div></div>
+                    <div class="tx-item"><div class="label">Country</div><div class="value">{{ tx.country or 'N/A' }}</div></div>
+                    <div class="tx-item"><div class="label">Timestamp</div><div class="value">{{ tx.timestamp or 'N/A' }}</div></div>
+                    <div class="tx-item"><div class="label">Account ID</div><div class="value">{{ tx.account_id or 'N/A' }}</div></div>
+                </div>
+            </div>
+
+            <!-- Triggered Rules -->
+            <div class="card">
+                <h2>Triggered AML Rules</h2>
+                {% for rule in case.triggered_rules %}
+                <div class="rule">
+                    <span class="severity {{ rule.severity }}">{{ rule.severity }}</span>
+                    <div>
+                        <div class="rule-name">{{ rule.rule }}</div>
+                        <div class="rule-detail">{{ rule.detail }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- SHAP Explanation -->
+            <div class="card">
+                <h2>ML Model Explanation (SHAP)</h2>
+                {% for s in case.shap_values %}
+                <div class="shap-item">
+                    <div class="shap-feature">{{ s.feature }}</div>
+                    <div class="shap-bar-wrap">
+                        <div class="shap-bar" style="width: {{ [([s.shap_value, 0]|max / 3 * 100), 100]|min }}%; background: {% if s.shap_value > 0 %}#fc8181{% else %}#68d391{% endif %};"></div>
+                    </div>
+                    <div class="shap-val">{{ s.shap_value }}</div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Narrative -->
+            <div class="card">
+                <h2>SAR Narrative</h2>
+                {% if case.narrative %}
+                <div class="narrative-text">{{ case.narrative }}</div>
+                {% else %}
+                <div style="color: #718096; font-size: 14px;">No narrative generated yet. Click "Generate Narrative" on the right.</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN -->
+        <div>
+            <!-- Risk Score -->
+            <div class="card" style="text-align: center;">
+                <h2>Risk Score</h2>
+                <div class="risk-score {% if case.risk_score > 0.8 %}high{% elif case.risk_score > 0.5 %}medium{% else %}low{% endif %}">
+                    {{ "%.2f"|format(case.risk_score) }}
+                </div>
+                <div style="color: #718096; font-size: 13px;">out of 1.00</div>
+            </div>
+
+            <!-- Actions -->
+            <div class="card">
+                <h2>Actions</h2>
+
+                {% if not case.narrative %}
+                <button class="btn btn-generate" onclick="generateNarrative()">⚡ Generate Narrative</button>
+                <div class="loading" id="gen-loading">Generating SAR narrative...</div>
+                {% endif %}
+
+                {% if case.status not in ['approved', 'rejected'] %}
+                <textarea id="notes" rows="4" placeholder="Analyst notes (optional)...">{{ case.analyst_notes or '' }}</textarea>
+                <button class="btn btn-approve" onclick="reviewCase('approve')">✅ Approve SAR</button>
+                <button class="btn btn-reject" onclick="reviewCase('reject')">❌ Reject Case</button>
+                {% else %}
+                <div style="color: #718096; font-size: 13px; text-align: center; padding: 16px;">
+                    Case has been <strong>{{ case.status }}</strong> and is now locked.
+                </div>
+                {% if case.analyst_notes %}
+                <div style="margin-top: 12px; font-size: 13px; color: #a0aec0;">
+                    <strong>Analyst Notes:</strong><br>{{ case.analyst_notes }}
+                </div>
+                {% endif %}
+                {% endif %}
+            </div>
+
+            <!-- Audit Log -->
+            {% if case.audit_log %}
+            <div class="card">
+                <h2>Audit Trail</h2>
+                {% set audit = case.audit_log %}
+                <div style="font-size: 12px; color: #718096; line-height: 1.8;">
+                    <div><strong>Model:</strong> {{ audit.model }}</div>
+                    <div><strong>Generated:</strong> {{ audit.generated_at[:19].replace('T', ' ') }}</div>
+                    <div><strong>RAG Query:</strong> {{ audit.rag_query }}</div>
+                    <div><strong>Sources:</strong>
+                        {% for s in audit.retrieved_sources %}
+                            {{ s.source }} (score: {{ s.score }}){% if not loop.last %}, {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        async function generateNarrative() {
+            document.getElementById('gen-loading').style.display = 'block';
+            const res = await fetch('/api/cases/{{ case.id }}/generate', { method: 'POST' });
+            if (res.ok) {
+                location.reload();
+            } else {
+                alert('Generation failed. Check the server logs.');
+                document.getElementById('gen-loading').style.display = 'none';
+            }
+        }
+
+        async function reviewCase(action) {
+            const notes = document.getElementById('notes')?.value || '';
+            const res = await fetch('/api/cases/{{ case.id }}/review', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action, analyst_notes: notes })
+            });
+            if (res.ok) {
+                location.reload();
+            } else {
+                alert('Review action failed.');
+            }
+        }
+    </script>
+</body>
+</html>
